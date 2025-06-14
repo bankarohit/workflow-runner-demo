@@ -2,6 +2,16 @@
 
 A mini full-stack workflow runner prototype built with Next.js and TypeScript.
 
+## Run Log Subscriber Component
+
+`RunLogSubscriber` connects to `/api/workflows/{id}/run` via Server-Sent Events and streams log updates. It automatically scrolls to the latest entry and shows connection errors when they occur.
+
+Usage example:
+
+```tsx
+<RunLogSubscriber workflowId="demo" />
+```
+
 ## Project Goals
 
 - Demonstrate a very small workflow engine that can execute a prompt step and a simulated LLM step.
@@ -56,3 +66,4 @@ The repository currently contains no actual test scripts and the `package.json` 
 - Support WebSocket communication for more interactive use cases.
 - Integrate a real LLM service instead of the current simulated response.
 - Provide a complete `package.json`, implement automated tests, and ensure `npm test` succeeds.
+
