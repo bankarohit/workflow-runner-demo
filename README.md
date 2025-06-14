@@ -31,6 +31,11 @@ Run the test suite with:
 ```bash
 npm test
 ```
+Ensure that project dependencies have been installed before running the tests:
+
+```bash
+npm install
+```
 
 The repository currently contains no actual test scripts and the `package.json` file is only a placeholder, so this command will fail until tests are implemented.
 
