@@ -16,7 +16,12 @@ async function simulateLLM(prompt: string): Promise<string> {
   return `LLM response for: ${prompt}`;
 }
 
-async function callWithTimeout(fn: () => Promise<string>, timeoutMs: number, retries: number, onEvent?: (ev: WorkflowEvent) => void): Promise<string> {
+export async function callWithTimeout(
+  fn: () => Promise<string>,
+  timeoutMs: number,
+  retries: number,
+  onEvent?: (ev: WorkflowEvent) => void,
+): Promise<string> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const res = await Promise.race([

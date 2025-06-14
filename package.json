@@ -2,6 +2,12 @@
   "name": "workflow-runner-demo",
   "version": "1.0.0",
   "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
