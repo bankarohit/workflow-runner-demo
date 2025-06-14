@@ -1,0 +1,69 @@
+import indexHandler from '../pages/api/workflows/index';
+import runHandler from '../pages/api/workflows/[id]/run';
+import { saveWorkflow, getRun } from '../lib/store';
+
+function mockReq(method: string, body?: any, query: any = {}) {
+  return { method, body, query } as any;
+}
+
+function mockRes() {
+  const res: any = { headers: {} };
+  res.statusCode = 200;
+  res.status = (c: number) => { res.statusCode = c; return res; };
+  res.json = (d: any) => { res.data = d; return res; };
+  res.end = (d?: any) => { res.ended = true; if (d) res.data = d; return res; };
+  res.setHeader = (k: string, v: string) => { res.headers[k] = v; };
+  res.write = (chunk: string) => { res.written = (res.written || '') + chunk; };
+  return res;
+}
+
+describe('workflows API', () => {
+  test('accepts valid workflow spec', () => {
+    const spec = {
+      id: 'a',
+      nodes: [
+        { id: 'p', type: 'PromptNode', prompt: 'hi' },
+        { id: 'l', type: 'LLMNode' },
+      ],
+    };
+    const req = mockReq('POST', spec);
+    const res = mockRes();
+    indexHandler(req, res);
+    expect(res.statusCode).toBe(201);
+    expect(res.data).toEqual({ id: 'a' });
+  });
+
+  test('rejects invalid spec', () => {
+    const spec = { id: 'bad', nodes: [] };
+    const req = mockReq('POST', spec);
+    const res = mockRes();
+    indexHandler(req, res);
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+describe('run route', () => {
+  test('404 if spec missing', async () => {
+    const req = mockReq('GET', undefined, { id: 'missing' });
+    const res = mockRes();
+    await runHandler(req, res);
+    expect(res.statusCode).toBe(404);
+  });
+
+  test('streams events for valid workflow', async () => {
+    const spec = {
+      id: 'stream',
+      nodes: [
+        { id: 'p', type: 'PromptNode', prompt: 'test' },
+        { id: 'l', type: 'LLMNode' },
+      ],
+    };
+    saveWorkflow(spec);
+    const req = mockReq('GET', undefined, { id: 'stream' });
+    const res = mockRes();
+    await runHandler(req, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['Content-Type']).toBe('text/event-stream');
+    expect(res.written).toContain('LLM response for: test');
+  });
+});
