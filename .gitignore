@@ -1,7 +1,6 @@
-# Node modules
+# Node artifacts
 node_modules/
-
-# Next.js build output
+dist/
 .next/
 out/
 
@@ -21,7 +20,6 @@ yarn-error.log*
 
 # Build directories
 coverage/
-dist/
 
 # TypeScript cache
 *.tsbuildinfo
