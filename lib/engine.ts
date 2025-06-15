@@ -27,13 +27,21 @@ export async function callWithTimeout(
   retries: number,
 ): Promise<string> {
   for (let attempt = 0; attempt <= retries; attempt++) {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const res = await Promise.race([
-        fn(),
-        new Promise<string>((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs)),
+        (async () => {
+          const val = await fn();
+          if (timer) clearTimeout(timer);
+          return val;
+        })(),
+        new Promise<string>((_, reject) => {
+          timer = setTimeout(() => reject(new Error('timeout')), timeoutMs);
+        }),
       ]);
       return res as string;
     } catch (err) {
+      if (timer) clearTimeout(timer);
       if (attempt >= retries) throw err;
     }
   }
