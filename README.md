@@ -2,6 +2,9 @@
 
 A mini full-stack workflow runner prototype built with Next.js and TypeScript.
 
+## License and Usage
+
+**Do not copy or paste this code.** All contents of this repository are personal and copyrighted. No copying, use, reproduction, or distribution is permitted without the author's written permission. Unauthorized use may lead to legal action.
 
 ## Project Goals
 
@@ -109,8 +112,4 @@ results. Data will also be lost whenever the server restarts.
 - Persist workflows and run history to a real database instead of in-memory maps.
 - Support WebSocket communication for more interactive scenarios.
 - Integrate a real LLM service instead of the current simulated response. (done)
-
-## License
-
-All contents of this repository are personal and copyrighted. No copying, use, reproduction, or distribution is permitted without the author's written permission. Unauthorized use may lead to legal action.
 
