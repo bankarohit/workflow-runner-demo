@@ -51,9 +51,18 @@ export default function Home() {
 
   return (
     <div style={{ padding: '1em' }}>
-      <textarea value={specText} onChange={onChange} rows={10} style={{ width: '100%' }} />
+      <textarea
+        value={specText}
+        onChange={onChange}
+        rows={10}
+        style={{ width: '100%' }}
+      />
       <div>
-        <button onClick={run} disabled={!isValid || running} style={{ marginTop: '1em' }}>
+        <button
+          onClick={run}
+          disabled={!isValid || running}
+          style={{ marginTop: '1em' }}
+        >
           Run Workflow
         </button>
       </div>
