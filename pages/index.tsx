@@ -36,11 +36,17 @@ export default function Home() {
           setLogs((prev) => [...prev, evt.message]);
         } else if (evt.type === 'error') {
           setLogs((prev) => [...prev, `Error: ${evt.message}`]);
+          es.close();
+          setRunning(false);
         } else if (evt.type === 'done') {
           setLogs((prev) => [...prev, 'Done']);
           es.close();
           setRunning(false);
         }
+      };
+      es.onerror = () => {
+        es.close();
+        setRunning(false);
       };
     } catch (err: any) {
       setLogs([`Error: ${err.message}`]);
