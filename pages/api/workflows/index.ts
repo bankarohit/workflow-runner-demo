@@ -13,6 +13,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         res.status(400).json({ error: 'Spec must contain PromptNode then LLMNode' });
         return;
       }
+      const prompt = spec.nodes[0] as any;
+      if (typeof prompt.template !== 'string' || typeof prompt.input !== 'object') {
+        res.status(400).json({ error: 'Prompt node must have template and input' });
+        return;
+      }
       saveWorkflow(spec);
       res.status(201).json({ id: spec.id, spec });
     } catch (err: any) {

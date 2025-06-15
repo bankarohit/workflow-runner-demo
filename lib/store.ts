@@ -1,7 +1,8 @@
 export interface PromptNodeSpec {
   id: string;
   type: 'PromptNode';
-  prompt: string;
+  template: string;
+  input: Record<string, string>;
 }
 
 export interface LLMNodeSpec {
