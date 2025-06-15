@@ -10,7 +10,7 @@ jest.mock('openai', () => {
 });
 process.env.OPENAI_API_KEY = 'test';
 
-import { runWorkflow, callWithTimeout, WorkflowEvent } from '../lib/engine';
+import { runWorkflow, callWithTimeout, WorkflowEvent, mergePrompt } from '../lib/engine';
 import { WorkflowSpec } from '../lib/store';
 
 describe('runWorkflow', () => {
@@ -18,7 +18,7 @@ describe('runWorkflow', () => {
     const spec: WorkflowSpec = {
       id: 'wf1',
       nodes: [
-        { id: 'n1', type: 'PromptNode', prompt: 'hello' },
+        { id: 'n1', type: 'PromptNode', template: 'hello', input: {} },
         { id: 'n2', type: 'LLMNode' },
       ],
     };
@@ -36,7 +36,7 @@ describe('runWorkflow', () => {
     const spec: WorkflowSpec = {
       id: 'wf2',
       nodes: [
-        { id: 'p', type: 'PromptNode', prompt: 'hi' },
+        { id: 'p', type: 'PromptNode', template: 'hi', input: {} },
         { id: 'l', type: 'LLMNode' },
       ],
     };
@@ -47,6 +47,17 @@ describe('runWorkflow', () => {
     expect(events[2]).toEqual({ node: 'l', status: 'running' });
     expect(events[3].node).toBe('l');
     expect(['success', 'failure']).toContain(events[3].status);
+  });
+});
+
+describe('mergePrompt', () => {
+  test('replaces placeholders', () => {
+    const result = mergePrompt('Hello {{name}}', { name: 'Bob' });
+    expect(result).toBe('Hello Bob');
+  });
+
+  test('throws for missing input', () => {
+    expect(() => mergePrompt('Hi {{name}}', {})).toThrow('Missing value for name');
   });
 });
 
