@@ -1,5 +1,6 @@
 import { WorkflowSpec, PromptNodeSpec, LLMNodeSpec, RunOutput } from './store';
 import { Configuration, OpenAIApi } from 'openai';
+import { logError } from './logger';
 
 export interface WorkflowEvent {
   node: string;
@@ -72,6 +73,7 @@ export async function runWorkflow(
     prompt = mergePrompt(promptNode.template, promptNode.input || {});
   } catch (err: any) {
     const msg = err && err.message ? err.message : String(err);
+    logError(err);
     logs.push(msg);
     onEvent?.({ node: promptNode.id, status: 'failure', error: msg });
     return { logs, status: 'error', error: msg };
@@ -87,6 +89,7 @@ export async function runWorkflow(
     return { logs, status: 'success', output: result };
   } catch (err: any) {
     const message = err && err.message ? err.message : String(err);
+    logError(err);
     logs.push(message);
     onEvent?.({ node: llmNode.id, status: 'failure', error: message });
     return { logs, status: 'error', error: message };
