@@ -37,12 +37,26 @@ Usage:
 - Requesting a nonexistent workflow ID returns HTTP 404.
 - `runWorkflow` captures errors, emits them over SSE, and stores the failed run in memory.
 
+## Architecture Overview
+
+The server exposes REST endpoints under `/api/workflows` and streams run
+events over **Server-Sent Events (SSE)** from
+`/api/workflows/{id}/run`. `RunLogSubscriber` on the client opens an
+`EventSource` to this endpoint and updates the log view as events arrive.
+
+Workflow specifications and run results are stored in-memory using `Map`
+objects in `lib/store.ts`. The `runWorkflow` function executes nodes in
+order and uses `callWithTimeout` to invoke the simulated LLM with a retry
+if the first attempt times out.
+
 ## Setup
 
 ### Prerequisites
 
 - Node.js 16+
 - npm
+Ensure you have **Node.js 16+** and **npm** installed.
+
 
 ### Installation
 
@@ -68,6 +82,13 @@ npm test
 ## Security Considerations
 
 This prototype implements no authentication. Workflow definitions and run results reside entirely in process memory, so anyone who can reach the API may submit or read workflows. All data is lost on server restart.
+
+## Security Considerations
+
+This prototype does not implement any authentication or authorization.
+Workflow definitions and run results live entirely in the Node.js process
+memory, so anyone who can reach the API may submit workflows or read
+results. Data will also be lost whenever the server restarts.
 
 ## Future Improvements
 

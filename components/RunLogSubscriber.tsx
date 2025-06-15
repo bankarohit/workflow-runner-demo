@@ -3,9 +3,9 @@ import LogViewer from './LogViewer';
 
 interface Props {
   workflowId: string;
+  onDone?: () => void;
 }
-
-export default function RunLogSubscriber({ workflowId }: Props) {
+export default function RunLogSubscriber({ workflowId, onDone }: Props) {
   const [logs, setLogs] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -16,6 +16,14 @@ export default function RunLogSubscriber({ workflowId }: Props) {
     setLogs([]);
     setError(null);
     const es = new EventSource(`/api/workflows/${workflowId}/run`);
+    let closed = false;
+    const close = () => {
+      if (!closed) {
+        closed = true;
+        es.close();
+        onDone?.();
+      }
+    };
 
     es.onmessage = (e) => {
       const evt = JSON.parse(e.data);
@@ -32,10 +40,10 @@ export default function RunLogSubscriber({ workflowId }: Props) {
 
     es.onerror = () => {
       setError('Connection lost');
-      es.close();
+      close();
     };
 
-    return () => es.close();
+    return close;
   }, [workflowId]);
 
   useEffect(() => {
