@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getWorkflow, saveRun } from '../../../../lib/store';
 import { runWorkflow } from '../../../../lib/engine';
+import { logError } from '../../../../lib/logger';
 
 export const config = {
   api: {
@@ -25,9 +26,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
-  await runWorkflow(spec, (ev) => {
-    res.write(`data: ${JSON.stringify(ev)}\n\n`);
-  }).then((result) => saveRun(id, result));
-
-  res.end();
+  try {
+    await runWorkflow(spec, (ev) => {
+      res.write(`data: ${JSON.stringify(ev)}\n\n`);
+    }).then((result) => saveRun(id, result));
+  } catch (err) {
+    logError(err);
+    res.write(`data: ${JSON.stringify({ node: 'server', status: 'failure', error: 'Internal error' })}\n\n`);
+  } finally {
+    res.end();
+  }
 }
