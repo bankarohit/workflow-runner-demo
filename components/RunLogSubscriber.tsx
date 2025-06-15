@@ -19,12 +19,14 @@ export default function RunLogSubscriber({ workflowId }: Props) {
 
     es.onmessage = (e) => {
       const evt = JSON.parse(e.data);
-      if (evt.type === 'log') {
-        setLogs((prev) => [...prev, evt.message]);
-      } else if (evt.type === 'error') {
-        setError(evt.message);
-      } else if (evt.type === 'done') {
-        es.close();
+      if (evt.status === 'running') {
+        setLogs((prev) => [...prev, `${evt.node} running`]);
+      } else if (evt.status === 'success') {
+        const msg = evt.output ? `${evt.node} success: ${evt.output}` : `${evt.node} success`;
+        setLogs((prev) => [...prev, msg]);
+      } else if (evt.status === 'failure') {
+        setLogs((prev) => [...prev, `Failure: ${evt.error}`]);
+        setError(evt.error || 'failure');
       }
     };
 

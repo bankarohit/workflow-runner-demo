@@ -1,9 +1,10 @@
 import { WorkflowSpec, PromptNodeSpec, LLMNodeSpec, RunOutput } from './store';
 
 export interface WorkflowEvent {
-  type: 'log' | 'error' | 'done';
-  message?: string;
-  data?: any;
+  node: string;
+  status: 'running' | 'success' | 'failure';
+  output?: string;
+  error?: string;
 }
 
 function delay(ms: number) {
@@ -20,7 +21,6 @@ export async function callWithTimeout(
   fn: () => Promise<string>,
   timeoutMs: number,
   retries: number,
-  onEvent?: (ev: WorkflowEvent) => void,
 ): Promise<string> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -31,34 +31,34 @@ export async function callWithTimeout(
       return res as string;
     } catch (err) {
       if (attempt >= retries) throw err;
-      onEvent?.({ type: 'log', message: 'Retrying after timeout' });
     }
   }
   throw new Error('call failed');
 }
 
-export async function runWorkflow(spec: WorkflowSpec, onEvent?: (ev: WorkflowEvent) => void): Promise<RunOutput> {
+export async function runWorkflow(
+  spec: WorkflowSpec,
+  onEvent?: (ev: WorkflowEvent) => void,
+): Promise<RunOutput> {
   const logs: string[] = [];
-  function log(msg: string) {
-    logs.push(msg);
-    onEvent?.({ type: 'log', message: msg });
-  }
 
+  const promptNode = spec.nodes[0] as PromptNodeSpec;
+  const llmNode = spec.nodes[1] as LLMNodeSpec;
+
+  onEvent?.({ node: promptNode.id, status: 'running' });
+  logs.push(`Prompting: ${promptNode.prompt}`);
+  onEvent?.({ node: promptNode.id, status: 'success', output: promptNode.prompt });
+
+  onEvent?.({ node: llmNode.id, status: 'running' });
   try {
-    const promptNode = spec.nodes[0] as PromptNodeSpec;
-    const llmNode = spec.nodes[1] as LLMNodeSpec;
-
-    log(`Prompting: ${promptNode.prompt}`);
-    const result = await callWithTimeout(() => simulateLLM(promptNode.prompt), 1000, 1, onEvent);
-    log(`LLM result: ${result}`);
-
-    const output: RunOutput = { logs, status: 'success', output: result };
-    onEvent?.({ type: 'done', data: result });
-    return output;
+    const result = await callWithTimeout(() => simulateLLM(promptNode.prompt), 1000, 1);
+    logs.push(`LLM result: ${result}`);
+    onEvent?.({ node: llmNode.id, status: 'success', output: result });
+    return { logs, status: 'success', output: result };
   } catch (err: any) {
     const message = err && err.message ? err.message : String(err);
     logs.push(message);
-    onEvent?.({ type: 'error', message });
+    onEvent?.({ node: llmNode.id, status: 'failure', error: message });
     return { logs, status: 'error', error: message };
   }
 }
