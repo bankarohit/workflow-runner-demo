@@ -3,9 +3,7 @@ import RunLogSubscriber from '../components/RunLogSubscriber';
 
 export default function Home() {
   const [specText, setSpecText] = useState('');
-  const [inputText, setInputText] = useState('');
   const [isValid, setIsValid] = useState(false);
-  const [inputValid, setInputValid] = useState(true);
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
 
@@ -20,27 +18,13 @@ export default function Home() {
     }
   };
 
-  const onInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setInputText(val);
-    try {
-      JSON.parse(val || '{}');
-      setInputValid(true);
-    } catch {
-      setInputValid(false);
-    }
-  };
 
   const run = async () => {
-    if (!isValid || !inputValid) return;
+    if (!isValid) return;
     setRunning(true);
     setWorkflowId(null);
     try {
       const parsed = JSON.parse(specText);
-      const input = inputText ? JSON.parse(inputText) : {};
-      if (parsed.nodes && parsed.nodes[0] && parsed.nodes[0].type === 'PromptNode') {
-        parsed.nodes[0].input = input;
-      }
       const response = await fetch('/api/workflows', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,17 +52,10 @@ export default function Home() {
         rows={10}
         style={{ width: '100%' }}
       />
-      <textarea
-        value={inputText}
-        onChange={onInputChange}
-        rows={4}
-        style={{ width: '100%', marginTop: '1em' }}
-        placeholder="Runtime input as JSON"
-      />
       <div>
         <button
           onClick={run}
-          disabled={!isValid || !inputValid || running}
+          disabled={!isValid || running}
           style={{ marginTop: '1em' }}
         >
           Run Workflow

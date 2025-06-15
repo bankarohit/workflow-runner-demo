@@ -25,6 +25,29 @@ Usage:
 <RunLogSubscriber workflowId="demo" />
 ```
 
+### Workflow Spec
+
+`PromptNode` now contains a `template` string and an `input` object. Provide all
+prompt variables inside the workflow JSON itself. The UI offers a single text
+area where you paste the entire spec and run it.
+
+Example:
+
+```json
+{
+  "id": "demo",
+  "nodes": [
+    {
+      "id": "p1",
+      "type": "PromptNode",
+      "template": "Hello {{name}}",
+      "input": { "name": "World" }
+    },
+    { "id": "l1", "type": "LLMNode" }
+  ]
+}
+```
+
 ### Key Architectural Decisions
 
 - **SSE vs WebSocket** – SSE keeps the log streaming implementation simple and requires no extra client library.
@@ -64,6 +87,8 @@ npm run dev
 ```
 
 Open `http://localhost:3000` in your browser.
+Paste your workflow JSON into the textarea and click **Run Workflow** to execute
+it. Logs for the latest run will appear below the button.
 
 ### Running Tests
 
