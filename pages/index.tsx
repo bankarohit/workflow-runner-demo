@@ -2,14 +2,8 @@ import { useState } from 'react';
 import RunLogSubscriber from '../components/RunLogSubscriber';
 
 export default function Home() {
-  const [specText, setSpecText] = useState(`{
-  "id": "demo",
-  "nodes": [
-    { "id": "p1", "type": "PromptNode", "prompt": "Hello" },
-    { "id": "l1", "type": "LLMNode" }
-  ]
-}`);
-  const [isValid, setIsValid] = useState(true);
+  const [specText, setSpecText] = useState('');
+  const [isValid, setIsValid] = useState(false);
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
 

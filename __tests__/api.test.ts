@@ -1,5 +1,6 @@
 import indexHandler from '../pages/api/workflows/index';
 import runHandler from '../pages/api/workflows/[id]/run';
+import latestHandler from '../pages/api/workflows/[id]/latest';
 import { saveWorkflow, getRun, WorkflowSpec } from '../lib/store';
 
 function mockReq(method: string, body?: any, query: any = {}) {
@@ -44,7 +45,7 @@ describe('workflows API', () => {
 
 describe('run route', () => {
   test('404 if spec missing', async () => {
-    const req = mockReq('GET', undefined, { id: 'missing' });
+    const req = mockReq('POST', undefined, { id: 'missing' });
     const res = mockRes();
     await runHandler(req, res);
     expect(res.statusCode).toBe(404);
@@ -59,7 +60,7 @@ describe('run route', () => {
       ],
     };
     saveWorkflow(spec);
-    const req = mockReq('GET', undefined, { id: 'stream' });
+    const req = mockReq('POST', undefined, { id: 'stream' });
     const res = mockRes();
     await runHandler(req, res);
     expect(res.statusCode).toBe(200);
@@ -78,7 +79,7 @@ describe('run route', () => {
       ],
     };
     saveWorkflow(spec);
-    const req = mockReq('GET', undefined, { id: 'persist' });
+    const req = mockReq('POST', undefined, { id: 'persist' });
     const res = mockRes();
     await runHandler(req, res);
     const run1 = getRun('persist');
@@ -93,10 +94,26 @@ describe('run route', () => {
       ],
     };
     saveWorkflow(spec2);
-    const req2 = mockReq('GET', undefined, { id: 'persist' });
+    const req2 = mockReq('POST', undefined, { id: 'persist' });
     const res2 = mockRes();
     await runHandler(req2, res2);
     const run2 = getRun('persist');
     expect(run2?.output).toBe('LLM response for: bye');
+  });
+
+  test('latest run endpoint returns result', async () => {
+    const run = getRun('persist');
+    const req = mockReq('GET', undefined, { id: 'persist' });
+    const res = mockRes();
+    latestHandler(req, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.data).toEqual(run);
+  });
+
+  test('latest run endpoint 404 for missing', () => {
+    const req = mockReq('GET', undefined, { id: 'none' });
+    const res = mockRes();
+    latestHandler(req, res);
+    expect(res.statusCode).toBe(404);
   });
 });
