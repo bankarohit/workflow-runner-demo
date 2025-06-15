@@ -1,6 +1,6 @@
 import indexHandler from '../pages/api/workflows/index';
 import runHandler from '../pages/api/workflows/[id]/run';
-import { saveWorkflow, getRun } from '../lib/store';
+import { saveWorkflow, getRun, WorkflowSpec } from '../lib/store';
 
 function mockReq(method: string, body?: any, query: any = {}) {
   return { method, body, query } as any;
@@ -19,7 +19,7 @@ function mockRes() {
 
 describe('workflows API', () => {
   test('accepts valid workflow spec', () => {
-    const spec = {
+    const spec: WorkflowSpec = {
       id: 'a',
       nodes: [
         { id: 'p', type: 'PromptNode', prompt: 'hi' },
@@ -51,7 +51,7 @@ describe('run route', () => {
   });
 
   test('streams events for valid workflow', async () => {
-    const spec = {
+    const spec: WorkflowSpec = {
       id: 'stream',
       nodes: [
         { id: 'p', type: 'PromptNode', prompt: 'test' },
