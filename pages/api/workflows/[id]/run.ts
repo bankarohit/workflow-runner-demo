@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getWorkflow, saveRun } from '../../../lib/store';
-import { runWorkflow, WorkflowEvent } from '../../../lib/engine';
+import { getWorkflow, saveRun } from '../../../../lib/store';
+import { runWorkflow, WorkflowEvent } from '../../../../lib/engine';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
