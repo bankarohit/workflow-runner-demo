@@ -2,6 +2,7 @@
 
 A mini full-stack workflow runner prototype built with Next.js and TypeScript.
 
+
 ## Run Log Subscriber Component
 
 `RunLogSubscriber` connects to `/api/workflows/{id}/run` via Server-Sent Events and streams log updates. It automatically scrolls to the latest entry and shows connection errors when they occur.
@@ -18,7 +19,21 @@ Usage example:
 - Stream logs from the server to the client while the workflow is running.
 - Keep the implementation small and easy to understand for experimentation purposes.
 
+## Architecture Overview
+
+The server exposes REST endpoints under `/api/workflows` and streams run
+events over **Server-Sent Events (SSE)** from
+`/api/workflows/{id}/run`. `RunLogSubscriber` on the client opens an
+`EventSource` to this endpoint and updates the log view as events arrive.
+
+Workflow specifications and run results are stored in-memory using `Map`
+objects in `lib/store.ts`. The `runWorkflow` function executes nodes in
+order and uses `callWithTimeout` to invoke the simulated LLM with a retry
+if the first attempt times out.
+
 ## Setup
+
+Ensure you have **Node.js 16+** and **npm** installed.
 
 1. Install dependencies:
 
@@ -53,6 +68,13 @@ npm test
 - Workflows must contain exactly two nodes: a `PromptNode` followed by an `LLMNode`. Invalid specs return HTTP 400.
 - Requesting a nonexistent workflow ID returns HTTP 404.
 - `runWorkflow` captures thrown errors, emits them over SSE, and stores the failed run in memory.
+
+## Security Considerations
+
+This prototype does not implement any authentication or authorization.
+Workflow definitions and run results live entirely in the Node.js process
+memory, so anyone who can reach the API may submit workflows or read
+results. Data will also be lost whenever the server restarts.
 
 ## Future Improvements
 
