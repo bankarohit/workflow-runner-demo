@@ -66,7 +66,12 @@ export default function Home() {
           Run Workflow
         </button>
       </div>
-      {workflowId && <RunLogSubscriber workflowId={workflowId} />}
+      {workflowId && (
+        <RunLogSubscriber
+          workflowId={workflowId}
+          onDone={() => setRunning(false)}
+        />
+      )}
     </div>
   );
 }
