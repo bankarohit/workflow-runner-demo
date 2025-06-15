@@ -1,6 +1,6 @@
 import indexHandler from '../pages/api/workflows/index';
 import runHandler from '../pages/api/workflows/[id]/run';
-import { saveWorkflow, getRun } from '../lib/store';
+import { saveWorkflow, getRun, WorkflowSpec } from '../lib/store';
 
 function mockReq(method: string, body?: any, query: any = {}) {
   return { method, body, query } as any;
@@ -19,7 +19,7 @@ function mockRes() {
 
 describe('workflows API', () => {
   test('accepts valid workflow spec', () => {
-    const spec = {
+    const spec: WorkflowSpec = {
       id: 'a',
       nodes: [
         { id: 'p', type: 'PromptNode', prompt: 'hi' },
@@ -30,7 +30,7 @@ describe('workflows API', () => {
     const res = mockRes();
     indexHandler(req, res);
     expect(res.statusCode).toBe(201);
-    expect(res.data).toEqual({ id: 'a' });
+    expect(res.data).toEqual({ id: 'a', spec });
   });
 
   test('rejects invalid spec', () => {
@@ -51,7 +51,7 @@ describe('run route', () => {
   });
 
   test('streams events for valid workflow', async () => {
-    const spec = {
+    const spec: WorkflowSpec = {
       id: 'stream',
       nodes: [
         { id: 'p', type: 'PromptNode', prompt: 'test' },
@@ -64,6 +64,39 @@ describe('run route', () => {
     await runHandler(req, res);
     expect(res.statusCode).toBe(200);
     expect(res.headers['Content-Type']).toBe('text/event-stream');
-    expect(res.written).toContain('LLM response for: test');
+    expect(res.written).toContain('"node":"p"');
+    expect(res.written).toContain('"status":"running"');
+    expect(res.written).toMatch(/"node":"l".*"status":"success"/s);
+  });
+
+  test('persists latest run result', async () => {
+    const spec: WorkflowSpec = {
+      id: 'persist',
+      nodes: [
+        { id: 'p', type: 'PromptNode', prompt: 'hi' },
+        { id: 'l', type: 'LLMNode' },
+      ],
+    };
+    saveWorkflow(spec);
+    const req = mockReq('GET', undefined, { id: 'persist' });
+    const res = mockRes();
+    await runHandler(req, res);
+    const run1 = getRun('persist');
+    expect(run1?.output).toBe('LLM response for: hi');
+
+    // run again with different prompt to ensure overwrite
+    const spec2: WorkflowSpec = {
+      id: 'persist',
+      nodes: [
+        { id: 'p', type: 'PromptNode', prompt: 'bye' },
+        { id: 'l', type: 'LLMNode' },
+      ],
+    };
+    saveWorkflow(spec2);
+    const req2 = mockReq('GET', undefined, { id: 'persist' });
+    const res2 = mockRes();
+    await runHandler(req2, res2);
+    const run2 = getRun('persist');
+    expect(run2?.output).toBe('LLM response for: bye');
   });
 });

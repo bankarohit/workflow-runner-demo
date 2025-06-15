@@ -36,18 +36,12 @@ Usage example:
 
 ### Running Tests
 
-Run the test suite with:
-
-```bash
-npm test
-```
-Ensure that project dependencies have been installed before running the tests:
+Install dependencies and run the Jest suite:
 
 ```bash
 npm install
+npm test
 ```
-
-The repository currently contains no actual test scripts and the `package.json` file is only a placeholder, so this command will fail until tests are implemented.
 
 ## Key Architectural Decisions
 
@@ -65,5 +59,4 @@ The repository currently contains no actual test scripts and the `package.json` 
 - Persist workflows and run history to a real database instead of in-memory maps.
 - Support WebSocket communication for more interactive use cases.
 - Integrate a real LLM service instead of the current simulated response.
-- Provide a complete `package.json`, implement automated tests, and ensure `npm test` succeeds.
 

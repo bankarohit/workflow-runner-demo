@@ -1,61 +1,63 @@
 import { useState } from 'react';
-import LogViewer from '../components/LogViewer';
+import RunLogSubscriber from '../components/RunLogSubscriber';
 
 export default function Home() {
-  const [spec, setSpec] = useState(`{
+  const [specText, setSpecText] = useState(`{
   "id": "demo",
   "nodes": [
     { "id": "p1", "type": "PromptNode", "prompt": "Hello" },
     { "id": "l1", "type": "LLMNode" }
   ]
 }`);
-  const [logs, setLogs] = useState<string[]>([]);
+  const [isValid, setIsValid] = useState(true);
+  const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
 
-  const run = async () => {
-    setLogs([]);
+  const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setSpecText(val);
     try {
+      JSON.parse(val);
+      setIsValid(true);
+    } catch {
+      setIsValid(false);
+    }
+  };
+
+  const run = async () => {
+    if (!isValid) return;
+    setRunning(true);
+    setWorkflowId(null);
+    try {
+      const parsed = JSON.parse(specText);
       const response = await fetch('/api/workflows', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: spec,
+        body: JSON.stringify(parsed),
       });
       if (!response.ok) {
         const err = await response.json();
-        setLogs([`Error: ${err.error}`]);
+        alert(err.error);
+        setRunning(false);
         return;
       }
       const data = await response.json();
-      const id = data.id;
-
-      const es = new EventSource(`/api/workflows/${id}/run`);
-      setRunning(true);
-      es.onmessage = (e) => {
-        const evt = JSON.parse(e.data);
-        if (evt.type === 'log') {
-          setLogs((prev) => [...prev, evt.message]);
-        } else if (evt.type === 'error') {
-          setLogs((prev) => [...prev, `Error: ${evt.message}`]);
-        } else if (evt.type === 'done') {
-          setLogs((prev) => [...prev, 'Done']);
-          es.close();
-          setRunning(false);
-        }
-      };
+      setWorkflowId(data.id);
     } catch (err: any) {
-      setLogs([`Error: ${err.message}`]);
+      alert(err.message);
+      setRunning(false);
     }
   };
 
   return (
     <div style={{ padding: '1em' }}>
-      <textarea value={spec} onChange={(e) => setSpec(e.target.value)} rows={10} cols={80} />
+      <textarea value={specText} onChange={onChange} rows={10} style={{ width: '100%' }} />
       <div>
-        <button onClick={run} disabled={running} style={{ marginTop: '1em' }}>
+        <button onClick={run} disabled={!isValid || running} style={{ marginTop: '1em' }}>
           Run Workflow
         </button>
       </div>
-      <LogViewer logs={logs} />
+      {workflowId && <RunLogSubscriber workflowId={workflowId} />}
     </div>
   );
 }

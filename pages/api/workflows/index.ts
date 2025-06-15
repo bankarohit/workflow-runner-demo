@@ -14,7 +14,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         return;
       }
       saveWorkflow(spec);
-      res.status(201).json({ id: spec.id });
+      res.status(201).json({ id: spec.id, spec });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }
