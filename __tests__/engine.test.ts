@@ -1,3 +1,15 @@
+jest.mock('openai', () => {
+  return {
+    Configuration: jest.fn(),
+    OpenAIApi: jest.fn().mockImplementation(() => ({
+      createChatCompletion: jest.fn(async ({ messages }) => ({
+        data: { choices: [{ message: { content: `LLM response for: ${messages[0].content}` } }] },
+      })),
+    })),
+  };
+});
+process.env.OPENAI_API_KEY = 'test';
+
 import { runWorkflow, callWithTimeout, WorkflowEvent } from '../lib/engine';
 import { WorkflowSpec } from '../lib/store';
 
