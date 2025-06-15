@@ -1,4 +1,5 @@
 import { WorkflowSpec, PromptNodeSpec, LLMNodeSpec, RunOutput } from './store';
+import { Configuration, OpenAIApi } from 'openai';
 
 export interface WorkflowEvent {
   node: string;
@@ -7,14 +8,17 @@ export interface WorkflowEvent {
   error?: string;
 }
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_API_KEY }));
 
-async function simulateLLM(prompt: string): Promise<string> {
-  // pretend to call an LLM and echo the prompt back
-  await delay(100);
-  return `LLM response for: ${prompt}`;
+export async function callOpenAI(prompt: string): Promise<string> {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY not set');
+  }
+  const completion = await openai.createChatCompletion({
+    model: 'gpt-3.5-turbo',
+    messages: [{ role: 'user', content: prompt }],
+  });
+  return completion.data.choices[0]?.message?.content?.trim() || '';
 }
 
 export async function callWithTimeout(
@@ -51,7 +55,7 @@ export async function runWorkflow(
 
   onEvent?.({ node: llmNode.id, status: 'running' });
   try {
-    const result = await callWithTimeout(() => simulateLLM(promptNode.prompt), 1000, 1);
+    const result = await callWithTimeout(() => callOpenAI(promptNode.prompt), 1000, 1);
     logs.push(`LLM result: ${result}`);
     onEvent?.({ node: llmNode.id, status: 'success', output: result });
     return { logs, status: 'success', output: result };

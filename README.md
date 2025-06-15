@@ -5,7 +5,7 @@ A mini full-stack workflow runner prototype built with Next.js and TypeScript.
 
 ## Project Goals
 
-- Demonstrate a tiny workflow engine that executes a prompt step followed by a simulated LLM step.
+- Demonstrate a tiny workflow engine that executes a prompt step followed by a real OpenAI call.
 - Stream logs from the server to the client while the workflow runs.
 - Keep the implementation small and easy to understand for experimentation.
 
@@ -51,6 +51,11 @@ Ensure you have **Node.js 16+** and **npm** installed.
 ```bash
 npm install
 ```
+Create a `.env.local` file with your OpenAI API key:
+
+```
+OPENAI_API_KEY=your-key
+```
 
 ### Start the development server
 
@@ -78,4 +83,4 @@ results. Data will also be lost whenever the server restarts.
 
 - Persist workflows and run history to a real database instead of in-memory maps.
 - Support WebSocket communication for more interactive scenarios.
-- Integrate a real LLM service instead of the current simulated response.
+- Integrate a real LLM service instead of the current simulated response. (done)
