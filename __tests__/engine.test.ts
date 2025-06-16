@@ -18,7 +18,7 @@ describe('runWorkflow', () => {
     const spec: WorkflowSpec = {
       id: 'wf1',
       nodes: [
-        { id: 'n1', type: 'PromptNode', template: 'hello', input: {} },
+        { id: 'n1', type: 'PromptNode', template: 'hello', input: {}, next: [{ id: 'n2' }] },
         { id: 'n2', type: 'LLMNode' },
       ],
     };
@@ -27,24 +27,29 @@ describe('runWorkflow', () => {
     expect(result.status).toBe('success');
     expect(result.output).toBe('LLM response for: hello');
     expect(result.logs).toEqual([
-      'Prompting: hello',
-      'LLM result: LLM response for: hello',
+      'Prompting (n1): hello',
+      'LLM result (n2): LLM response for: hello',
     ]);
+    expect(result.events.length).toBeGreaterThan(0);
   });
 
   test('emits structured events', async () => {
     const spec: WorkflowSpec = {
       id: 'wf2',
       nodes: [
-        { id: 'p', type: 'PromptNode', template: 'hi', input: {} },
+        { id: 'p', type: 'PromptNode', template: 'hi', input: {}, next: [{ id: 'l' }] },
         { id: 'l', type: 'LLMNode' },
       ],
     };
     const events: WorkflowEvent[] = [];
     await runWorkflow(spec, (e) => events.push(e));
-    expect(events[0]).toEqual({ node: 'p', status: 'running' });
-    expect(events[1]).toEqual({ node: 'p', status: 'success', output: 'hi' });
-    expect(events[2]).toEqual({ node: 'l', status: 'running' });
+    expect(events[0].node).toBe('p');
+    expect(events[0].status).toBe('running');
+    expect(events[1].node).toBe('p');
+    expect(events[1].status).toBe('success');
+    expect(events[1].output).toBe('hi');
+    expect(events[2].node).toBe('l');
+    expect(events[2].status).toBe('running');
     expect(events[3].node).toBe('l');
     expect(['success', 'failure']).toContain(events[3].status);
   });

@@ -1,13 +1,26 @@
-export interface PromptNodeSpec {
+export interface NextStep {
   id: string;
+  condition?: string;
+}
+
+export interface BaseNodeSpec {
+  id: string;
+  type: string;
+  next?: NextStep[];
+  timeoutMs?: number;
+  retries?: number;
+}
+
+export interface PromptNodeSpec extends BaseNodeSpec {
   type: 'PromptNode';
   template: string;
   input: Record<string, string>;
 }
 
-export interface LLMNodeSpec {
-  id: string;
+export interface LLMNodeSpec extends BaseNodeSpec {
   type: 'LLMNode';
+  model?: string;
+  temperature?: number;
 }
 
 export type NodeSpec = PromptNodeSpec | LLMNodeSpec;
@@ -17,11 +30,20 @@ export interface WorkflowSpec {
   nodes: NodeSpec[];
 }
 
+export interface RunTraceEvent {
+  node: string;
+  status: 'running' | 'success' | 'failure';
+  output?: string;
+  error?: string;
+  timestamp: number;
+}
+
 export interface RunOutput {
   logs: string[];
   status: 'running' | 'success' | 'error';
   output?: string;
   error?: string;
+  events: RunTraceEvent[];
 }
 
 const workflowStore = new Map<string, WorkflowSpec>();

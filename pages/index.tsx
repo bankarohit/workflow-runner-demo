@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import RunLogSubscriber from '../components/RunLogSubscriber';
+import DagPreview from '../components/DagPreview';
 
 export default function Home() {
   const [specText, setSpecText] = useState('');
@@ -52,6 +53,7 @@ export default function Home() {
         rows={10}
         style={{ width: '100%' }}
       />
+      {isValid && <DagPreview spec={JSON.parse(specText)} />}
       <div>
         <button
           onClick={run}
