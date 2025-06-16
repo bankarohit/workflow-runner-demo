@@ -35,7 +35,7 @@ describe('workflows API', () => {
     const spec: WorkflowSpec = {
       id: 'a',
       nodes: [
-        { id: 'p', type: 'PromptNode', template: 'hi', input: {} },
+        { id: 'p', type: 'PromptNode', template: 'hi', input: {}, next: [{ id: 'l' }] },
         { id: 'l', type: 'LLMNode' },
       ],
     };
@@ -67,7 +67,7 @@ describe('run route', () => {
     const spec: WorkflowSpec = {
       id: 'stream',
       nodes: [
-        { id: 'p', type: 'PromptNode', template: 'test', input: {} },
+        { id: 'p', type: 'PromptNode', template: 'test', input: {}, next: [{ id: 'l' }] },
         { id: 'l', type: 'LLMNode' },
       ],
     };
@@ -86,7 +86,7 @@ describe('run route', () => {
     const spec: WorkflowSpec = {
       id: 'persist',
       nodes: [
-        { id: 'p', type: 'PromptNode', template: 'hi', input: {} },
+        { id: 'p', type: 'PromptNode', template: 'hi', input: {}, next: [{ id: 'l' }] },
         { id: 'l', type: 'LLMNode' },
       ],
     };
@@ -101,7 +101,7 @@ describe('run route', () => {
     const spec2: WorkflowSpec = {
       id: 'persist',
       nodes: [
-        { id: 'p', type: 'PromptNode', template: 'bye', input: {} },
+        { id: 'p', type: 'PromptNode', template: 'bye', input: {}, next: [{ id: 'l' }] },
         { id: 'l', type: 'LLMNode' },
       ],
     };

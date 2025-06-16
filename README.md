@@ -34,19 +34,67 @@ Usage:
 prompt variables inside the workflow JSON itself. The UI offers a single text
 area where you paste the entire spec and run it.
 
-Example:
+Example (DAG format):
 
 ```json
 {
   "id": "demo",
   "nodes": [
     {
-      "id": "p1",
+      "id": "start",
       "type": "PromptNode",
       "template": "Hello {{name}}",
-      "input": { "name": "World" }
+      "input": { "name": "World" },
+      "next": [{ "id": "llm" }]
     },
-    { "id": "l1", "type": "LLMNode" }
+    { "id": "llm", "type": "LLMNode" }
+  ]
+}
+```
+
+Another example with fan-out and merge:
+
+```json
+{
+  "id": "fan-out",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "PromptNode",
+      "template": "Start {{msg}}",
+      "input": { "msg": "Hello" },
+      "next": [{ "id": "a" }, { "id": "b" }]
+    },
+    { "id": "a", "type": "LLMNode", "next": [{ "id": "merge" }] },
+    { "id": "b", "type": "LLMNode", "next": [{ "id": "merge" }] },
+    {
+      "id": "merge",
+      "type": "PromptNode",
+      "template": "Results: {{a}} and {{b}}"
+    }
+  ]
+}
+```
+
+Example with conditional branching:
+
+```json
+{
+  "id": "branch",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "PromptNode",
+      "template": "{{msg}}",
+      "input": { "msg": "yes or no?" },
+      "next": [
+        { "id": "yesNode", "condition": "output.includes('yes')" },
+        { "id": "noNode", "condition": "output.includes('no')" }
+      ]
+    },
+    { "id": "yesNode", "type": "LLMNode", "next": [{ "id": "end" }] },
+    { "id": "noNode", "type": "LLMNode", "next": [{ "id": "end" }] },
+    { "id": "end", "type": "PromptNode", "template": "done" }
   ]
 }
 ```
@@ -58,7 +106,7 @@ Example:
 
 ### Assumptions and Error Handling
 
-- Workflows must contain exactly two nodes: a `PromptNode` followed by an `LLMNode`; invalid specs return HTTP 400.
+- Workflows can contain any number of nodes arranged in a DAG.
 - Requesting a nonexistent workflow ID returns HTTP 404.
 - `runWorkflow` captures errors, emits them over SSE, and stores the failed run in memory.
 - Latest run output is available at `GET /api/workflows/{id}/latest`.
